@@ -1,0 +1,78 @@
+h1. SUMMARY
+
+This Rails plugin provides a Dictionary class that can be inherited by models that need some data stored in an ActiveRecord-ish fashion when actually putting it in the database is too heavy-handed.
+
+h1. INSTALLATION
+
+<pre>
+<code>
+ruby script/plugin install git://github.com/progmatica/convenient_dictionary.git
+</code>
+</pre>
+
+h1. USAGE
+
+The lib will be picked up automatically when Rails loads.
+
+h1. EXAMPLE
+
+Dictionary is meant to be included by model classes; for example, you could create a file in your models/ folder called 'role.rb' and then populate it like so:
+<pre>
+<code>
+class Role
+  include Dictionary
+
+  def self.all_entries
+    @@all_entries ||= populate( [
+      { :id => 1, :name => "boss" },
+      { :id => 2, :name => "manager" },
+      { :id => 3, :name => "grunt" }
+    ] )
+  end
+end
+</code>
+</pre>
+
+It isn't as scary as it looks.  Just focus on the hashes.  So what do we get?
+<pre>
+<code>
+>> Role.fetch 2
+=> #<Role:0x7f6a29eb7810 @id=2, @name="manager">
+>> r = Role.fetch 1
+=> #<Role:0x7f6a29eb7838 @id=1, @name="boss">
+>> r.is_boss?
+=> true
+>> r == Role.fetch( :first )
+=> true
+>> r = Role.fetch( 'manager' )
+=> #<Role:0x7f6a29eb7810 @id=2, @name="manager">
+>> Role.fetch :all
+=> [#<Role:0x7f6a29eb7838 @id=1, @name="boss">, #<Role:0x7f6a29eb7810 @id=2, @name="manager">, #<Role:0x7f6a29eb77c0 @id=3, @name="grunt">]
+>> Role.options
+=> [["boss", 1], ["manager", 2], ["grunt", 3]]
+</code>
+</pre>
+
+That last function is a useful helper for the select_tag()
+
+Is that all?  Pretend for a moment that you have a User model with attribute role_id.  You could say:
+<pre>
+<code>
+User.find( :first, :conditions => { :role_id => Role.fetch( 'grunt' ) } )
+</code>
+</pre>
+
+And as long as you don't have method name collisions, you can use this shorthand to bypass the 'fetch' method altogether:
+<pre>
+<code>
+>> Role.boss
+=> #<Role:0x7f6a29eb7838 @id=1, @name="boss">
+</code>
+</pre>
+
+Pretty handy, says the robot with no arms.
+
+h1. TIPS
+
+Each entry must at least have an 'id' and 'name', but can have any other attributes as well.  Just add additional attr_accessor statements in your model class definition. T-Squares are useful tools, as long as the 'T' isn't written in cursive.
+

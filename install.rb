@@ -1,0 +1,2 @@
+puts "\nDictionary class installed."
+
